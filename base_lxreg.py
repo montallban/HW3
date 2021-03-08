@@ -94,7 +94,6 @@ def augment_args(args):
     # if you specify exp index, it translates that into argument values that you're overiding
     '''
     Use the jobiterator to override the specified arguments based on the experiment index. 
-
     @return A string representing the selection of parameters to be used in the file name
     '''
     index = args.exp_index
@@ -104,9 +103,19 @@ def augment_args(args):
     # Create parameter sets to execute the experiment on.  This defines the Cartesian product
     #  of experiments that we will be executing
     # Overides Ntraining and rotation
-    p = {'Ntraining': [1,2,3,5,10,18], 
-         'rotation': range(20),
-         'dropout': [None, 0.1, 0.2, 0.5]}
+    if args.dropout != 0:
+        p = {'Ntraining': [1,2,3,5,10,18], 
+             'rotation': range(20),
+             'dropout': [None, 0.1, 0.2, 0.5]}
+    elif(args.LxReg)
+        if args.l1 != 0:
+            p = {'Ntraining': [1,2,3,5,10,18], 
+                 'rotation': range(20),
+                 'l2': [None, 0.1, 0.2, 0.3, 0.5]}
+        elif args.l2 != 0:
+            p = {'Ntraining': [1,2,3,5,10,18], 
+                 'rotation': range(20),
+                 'l1': [None, 0.1, 0.2, 0.3, 0.5]}     
 
     # Create the iterator
     ji = JobIterator(p)
@@ -312,24 +321,24 @@ def execute_exp(args=None):
 def create_parser():
     # Parse the command-line arguments
     parser = argparse.ArgumentParser(description='BMI Learner')
-    parser.add_argument('-rotation', type=int, default=0, help='Cross-validation rotation')
+    parser.add_argument('-rotation', type=int, default=1, help='Cross-validation rotation')
     parser.add_argument('-epochs', type=int, default=100, help='Training epochs')
-    parser.add_argument('-dataset', type=str, default='/home/mcmontalbano/datasets/bmi_dataset.pkl', help='Data set file')
+    parser.add_argument('-dataset', type=str, default=r'C:\Users\User\AML\dataset\bmi_dataset.pkl', help='Data set file')
     parser.add_argument('-Ntraining', type=int, default=1, help='Number of training folds')
-    parser.add_argument('-output_type', type=str, default='theta', help='Type to predict')
+    parser.add_argument('-output_type', type=str, default='torque', help='Type to predict')
     parser.add_argument('-exp_index', type=int, default=1, help='Experiment index')
     parser.add_argument('-Nfolds', type=int, default=20, help='Maximum number of folds')
-    parser.add_argument('-results_path', type=str, default='results', help='Results directory')
+    parser.add_argument('-results_path', type=str, default=r'C:\Users\User\AML\homework2\results', help='Results directory')
     parser.add_argument('-hidden', nargs='+', type=int, default=[1000, 100, 10 ,100, 1000], help='Number of hidden units per layer (sequence of ints)')
     parser.add_argument('-lrate', type=float, default=0.001, help="Learning rate")
     parser.add_argument('-min_delta', type=float, default=0.0, help="Minimum delta for early termination")
     parser.add_argument('-patience', type=int, default=100, help="Patience for early termination")
     parser.add_argument('-verbose', '-v', action='count', default=0, help="Verbosity level")
-    parser.add_argument('-predict_dim', type=int, default=0, help="Dimension of the output to predict")
-    parser.add_argument('-nogo', action='store_true', help='Do not perform the experiment')
+    parser.add_argument('-predict_dim', type=int, default=1, help="Dimension of the output to predict")
+    parser.add_argument('-nogo', action='store_false', help='Do not perform the experiment')
     parser.add_argument('-exp_type', type=str, default='bmi', help='High level name for this set of experiments')
     parser.add_argument('-dropout', type=float, default=0, help='Enter the dropout rate.' )
-    parser.add_argument('-LxReg', type=str, default=None, help='Enter l1, l2, or none.')    
+    parser.add_argument('-LxReg', action="store_false", help='Enter l1, l2, or none.')    
     parser.add_argument('-l1', type=float, default=0, help='Enter value for l1 in ridge regression.')    
     parser.add_argument('-l2', type=float, default=0, help='Enter value for l2 in ridge regression.')    
 
