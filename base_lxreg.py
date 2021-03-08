@@ -107,15 +107,15 @@ def augment_args(args):
         p = {'Ntraining': [1,2,3,5,10,18], 
              'rotation': range(20),
              'dropout': [None, 0.1, 0.2, 0.5]}
-    elif(args.LxReg)
+    elif(args.LxReg):
         if args.l1 != 0:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l1': [None, 0.1, 0.2, 0.3, 0.5]}
+                 'l1': [None, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.03]}
         elif args.l2 != 0:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l2': [None, 0.1, 0.2, 0.3, 0.5]}     
+                 'l2': [None, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.03]}     
 
     # Create the iterator
     ji = JobIterator(p)
@@ -163,32 +163,33 @@ def deep_network_basic(in_n, hidden, out_n, hidden_activation, output_activation
     # Construct model
     # First, check for Lx regularization
     if(args.LxReg):
-        model.add(InputLayer(input_shape=(in_n,)))
-        for idx, layer_n in enumerate(hidden):
-            title = "hidden" + str(idx)
-            # Check for either l1 or l2 regularization
-            # And add hidden layers 
-            if l1 != 0:
-                model.add(Dense(layer_n, use_bias=True, name=title,
-                activation=hidden_activation, kernel_initializer="he_normal",
-                kernel_regularizer=keras.regularizers.l1(l1)))
-            if l2 != 0:
-                model.add(Dense(layer_n, use_bias=True, name=title,
-                activation=hidden_activation, kernel_initializer="he_normal",
-                kernel_regularizer=keras.regularizers.l2(l2)))
-            # add output layer
+        if l1 != None or l2 != None:
+            model.add(InputLayer(input_shape=(in_n,)))
+            for idx, layer_n in enumerate(hidden):
+                title = "hidden" + str(idx)
+                # Check for either l1 or l2 regularization
+                # And add hidden layers 
+                if l1 != None:
+                    model.add(Dense(layer_n, use_bias=True, name=title,
+                    activation=hidden_activation, kernel_initializer="he_normal",
+                    kernel_regularizer=keras.regularizers.l1(l1)))
+                if l2 != None:
+                    model.add(Dense(layer_n, use_bias=True, name=title,
+                    activation=hidden_activation, kernel_initializer="he_normal",
+                    kernel_regularizer=keras.regularizers.l2(l2)))
+        # add output layer
             model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))    
-            else:
-                # if LxReg but l1 = 0 and l2 = 0, then make a model without LxReg
-                model.add(input_shape=(in_n,))
-                # Add dropout in the input layer and in the hidden layers
-                for idx, layer_n in enumerate(hidden):
-                    title = "hidden" + str(idx)
-                    model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
-                model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))      
+        elif l1 == None and l2 == None:
+            # if LxReg but l1 = 0 and l2 = 0, then make a model without LxReg
+            model.add(InputLayer(input_shape=(in_n,)))
+            # Add dropout in the input layer and in the hidden layers
+            for idx, layer_n in enumerate(hidden):
+                title = "hidden" + str(idx)
+                model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
+            model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))      
                           
     # If no LxReg, then build model without it, possibly with dropout
-    else:
+    if args.dropout != None:
         model.add(Dropout(dropout, input_shape=(in_n,)))
         # Add dropout in the input layer and in the hidden layers
         for idx, layer_n in enumerate(hidden):
@@ -308,7 +309,7 @@ def create_parser():
     parser = argparse.ArgumentParser(description='BMI Learner')
     parser.add_argument('-rotation', type=int, default=1, help='Cross-validation rotation')
     parser.add_argument('-epochs', type=int, default=1000, help='Training epochs')
-    parser.add_argument('-dataset', type=str, default='home/mcmontalbano/datasets/bmi_dataset.pkl', help='Data set file')
+    parser.add_argument('-dataset', type=str, default='/home/mcmontalbano/datasets/bmi_dataset.pkl', help='Data set file')
     parser.add_argument('-Ntraining', type=int, default=1, help='Number of training folds')
     parser.add_argument('-output_type', type=str, default='theta', help='Type to predict')
     parser.add_argument('-exp_index', type=int, default=1, help='Experiment index')
@@ -320,12 +321,12 @@ def create_parser():
     parser.add_argument('-patience', type=int, default=100, help="Patience for early termination")
     parser.add_argument('-verbose', '-v', action='count', default=0, help="Verbosity level")
     parser.add_argument('-predict_dim', type=int, default=0, help="Dimension of the output to predict")
-    parser.add_argument('-nogo', action='store_false', help='Do not perform the experiment')
+    parser.add_argument('-nogo', action='store_true', help='Do not perform the experiment')
     parser.add_argument('-exp_type', type=str, default='bmi', help='High level name for this set of experiments')
-    parser.add_argument('-dropout', type=float, default=0, help='Enter the dropout rate.' )
-    parser.add_argument('-LxReg', action="store_false", help='Enter l1, l2, or none.')    
-    parser.add_argument('-l1', type=float, default=0, help='Enter value for l1 in ridge regression.')    
-    parser.add_argument('-l2', type=float, default=0, help='Enter value for l2 in ridge regression.')    
+    parser.add_argument('-dropout', type=float, default=None, help='Enter the dropout rate.' )
+    parser.add_argument('-LxReg', action='store_false', help='Enter l1, l2, or none.')    
+    parser.add_argument('-l1', type=float, default=None, help='Enter value for l1 in ridge regression.')    
+    parser.add_argument('-l2', type=float, default=None, help='Enter value for l2 in ridge regression.')    
 
     return parser
 
