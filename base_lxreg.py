@@ -111,11 +111,11 @@ def augment_args(args):
         if args.l1 != 0:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l2': [None, 0.1, 0.2, 0.3, 0.5]}
+                 'l1': [None, 0.1, 0.2, 0.3, 0.5]}
         elif args.l2 != 0:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l1': [None, 0.1, 0.2, 0.3, 0.5]}     
+                 'l2': [None, 0.1, 0.2, 0.3, 0.5]}     
 
     # Create the iterator
     ji = JobIterator(p)
