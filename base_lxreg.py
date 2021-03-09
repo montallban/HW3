@@ -103,7 +103,7 @@ def augment_args(args):
     # Create parameter sets to execute the experiment on.  This defines the Cartesian product
     #  of experiments that we will be executing
     # Overides Ntraining and rotation
-    if args.dropout != 0:
+    if args.dropout != None:
         p = {'Ntraining': [1,2,3,5,10,18], 
              'rotation': range(20),
              'dropout': [None, 0.1, 0.2, 0.5]}
@@ -170,33 +170,47 @@ def deep_network_basic(in_n, hidden, out_n, hidden_activation, output_activation
                 # Check for either l1 or l2 regularization
                 # And add hidden layers 
                 if l1 != None:
+                    print('l1')
                     model.add(Dense(layer_n, use_bias=True, name=title,
                     activation=hidden_activation, kernel_initializer="he_normal",
                     kernel_regularizer=keras.regularizers.l1(l1)))
                 if l2 != None:
+                    print('l2')
                     model.add(Dense(layer_n, use_bias=True, name=title,
                     activation=hidden_activation, kernel_initializer="he_normal",
                     kernel_regularizer=keras.regularizers.l2(l2)))
         # add output layer
             model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))    
         elif l1 == None and l2 == None:
+            print('None')
             # if LxReg but l1 = 0 and l2 = 0, then make a model without LxReg
             model.add(InputLayer(input_shape=(in_n,)))
-            # Add dropout in the input layer and in the hidden layers
+            # Add hidden layers
             for idx, layer_n in enumerate(hidden):
                 title = "hidden" + str(idx)
                 model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
             model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))      
                           
     # If no LxReg, then build model without it, possibly with dropout
-    if args.dropout != None:
-        model.add(Dropout(dropout, input_shape=(in_n,)))
-        # Add dropout in the input layer and in the hidden layers
-        for idx, layer_n in enumerate(hidden):
-            title = "hidden" + str(idx)
-            model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
-            model.add(Dropout(dropout))
-        model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))
+    if args.dropout_input == "on":
+        # check for dropout = None
+        if dropout == None:
+            # build a network without dropout
+            model.add(InputLayer(input_shape=(in_n,)))
+            # Add hidden layers
+            for idx, layer_n in enumerate(hidden):
+                title = "hidden" + str(idx)
+                model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
+            model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))
+        else:
+            # build a network with dropout
+            model.add(Dropout(dropout, input_shape=(in_n,)))
+            # Add dropout in the input layer and in the hidden layers
+            for idx, layer_n in enumerate(hidden):
+                title = "hidden" + str(idx)
+                model.add(Dense(layer_n, use_bias=True, name=title, activation=hidden_activation))
+                model.add(Dropout(dropout))
+            model.add(Dense(out_n, use_bias=True, name="output", activation=output_activation))
 
     # Optiemizer
     opt = tf.keras.optimizers.Adam(lr=lrate, beta_1=0.9, beta_2=0.999,
@@ -210,7 +224,6 @@ def deep_network_basic(in_n, hidden, out_n, hidden_activation, output_activation
     return model
 
 ########################################################
-
 
 def execute_exp(args=None):
     '''
@@ -327,7 +340,7 @@ def create_parser():
     parser.add_argument('-LxReg', action='store_false', help='Enter l1, l2, or none.')    
     parser.add_argument('-l1', type=float, default=None, help='Enter value for l1 in ridge regression.')    
     parser.add_argument('-l2', type=float, default=None, help='Enter value for l2 in ridge regression.')    
-
+    parser.add_argument('-dropout_input', type=str, default='off', help='Turn dropout on with "on", off with "off")
     return parser
 
 def check_args(args):
