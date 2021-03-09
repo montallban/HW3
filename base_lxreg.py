@@ -1,6 +1,6 @@
 '''
 Author: Andrew H. Fagg
-Modified by: Alan Lee
+Modified by: Michael Montalbano
 '''
 import numpy as np
 from symbiotic_metrics import *
