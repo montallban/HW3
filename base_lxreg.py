@@ -108,14 +108,14 @@ def augment_args(args):
              'rotation': range(20),
              'dropout': [None, 0.1, 0.2, 0.5]}
     elif(args.LxReg):
-        if args.l1 != 0:
+        if args.l1 != None:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l1': [None, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.03]}
-        elif args.l2 != 0:
+                 'l1': [None, 0.0001, 0.001, 0.01]}
+        elif args.l2 != None:
             p = {'Ntraining': [1,2,3,5,10,18], 
                  'rotation': range(20),
-                 'l2': [None, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.03]}     
+                 'l2': [None, 0.0001, 0.001, 0.01]}     
 
     # Create the iterator
     ji = JobIterator(p)
@@ -337,10 +337,10 @@ def create_parser():
     parser.add_argument('-nogo', action='store_true', help='Do not perform the experiment')
     parser.add_argument('-exp_type', type=str, default='bmi', help='High level name for this set of experiments')
     parser.add_argument('-dropout', type=float, default=None, help='Enter the dropout rate.' )
-    parser.add_argument('-LxReg', action='store_false', help='Enter l1, l2, or none.')    
+    parser.add_argument('-LxReg', action='store_true', help='Enter l1, l2, or none.')    
     parser.add_argument('-l1', type=float, default=None, help='Enter value for l1 in ridge regression.')    
     parser.add_argument('-l2', type=float, default=None, help='Enter value for l2 in ridge regression.')    
-    parser.add_argument('-dropout_input', type=str, default='off', help='Turn dropout on with "on", off with "off")
+    parser.add_argument('-dropout_input', type=str, default='off', help='Turn dropout on with "on", off with "off"')
     return parser
 
 def check_args(args):
